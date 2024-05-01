@@ -1,6 +1,6 @@
 import React from 'react';
 import {NativeModules, Button, SafeAreaView, ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View } from 'react-native';
-// import {LinearGradient} from 'react-native-linear-gradient';
+import {LinearGradient} from 'react-native-linear-gradient';
 
 const styles = StyleSheet.create({
     container: {
@@ -9,7 +9,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'flex-end',  
         // justifyContent: 'space-between',  
-        // backgroundColor: 'transparent',
+        backgroundColor: 'transparent',
         // borderTopColor: 'orange', //'#FBFAFA',
         // borderTopWidth: 10,
         // shadowColor: '#099FD7',
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
         // shadowOpacity: 100
         // boxShadow: 'rgb(0, 0, 0) 0px 0px 55px 55px',
         position: 'fixed',
-        zIndex: 1,
+        zIndex: 99,
         // display: 'flex',
     },
     siteHeader: {
@@ -65,13 +65,15 @@ interface IProps {
 
     return (
    <View style={styles.container}>
-    {/* <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']} style={styles.linearGradient}> */}
+    <LinearGradient colors={['black', 'transparent']} 
+    // start={{x: 0, y: 0}} end={{x: 0, y: 1}}
+    style={styles.linearGradient}>
     {/* <Button
     title="Dev Menu"
     onPress={() => onMenuButtonClick()}
     /> */}
     <Text style={styles.siteHeader}>{props.siteHeader}</Text>
-    {/* </LinearGradient> */}
+    </LinearGradient>
    </View>
     );
   }

@@ -9,9 +9,11 @@ import React, { Component, useState, useEffect, useCallback, useRef} from 'react
 
 import {Dimensions, StyleProp, ViewStyle, StyleSheet, Text, Image, useColorScheme, View, Animated, ScrollView} from 'react-native';
 
-
+import TestGridTwo from './TestGridTwo'
 
 import StaggeredList from '@mindinventory/react-native-stagger-view';
+import { ResponsiveGrid } from 'react-native-flexible-grid';
+
 import EmptySquare from '../assets/emptysquare.png';
 const DEFAULT_IMAGE = Image.resolveAssetSource(EmptySquare).uri;
 
@@ -100,10 +102,10 @@ const [startXy, setStartXy] = useState([0,0])
 const [posXy, setPosXy] = useState([0,50])
 const [xY, setXY] = useState([0,0])
 
-useEffect(() => {
-  console.log("startXy", startXy)
-}, [startXy])
-console.log("photos", props.photos)
+// useEffect(() => {
+//   console.log("startXy", startXy)
+// }, [startXy])
+// console.log("photos", props.photos)
 
 const onScrollFunc = (x, y) => {
   // PASS X, Y TOUCH COORDINATES 
@@ -112,8 +114,8 @@ const onScrollFunc = (x, y) => {
   const xDiff = -(xY[0] - x) 
   const yDiff = -(xY[1] - y) 
 
-  console.log(xY[0], "-", x, xY[1], "-", y)
-  console.log("xDiff", xDiff, "yDiff", yDiff)
+//   console.log(xY[0], "-", x, xY[1], "-", y)
+//   console.log("xDiff", xDiff, "yDiff", yDiff)
 
   // SET LAST POINT 
   setXY([x, y])
@@ -122,6 +124,83 @@ const onScrollFunc = (x, y) => {
   setPosXy([(posXy[0] + (xDiff)), (posXy[1] + (yDiff))])
 
 };
+
+
+let idCounter = React.useRef(0);
+  interface DataProp {
+    id: number;
+    widthRatio?: number;
+    heightRatio?: number;
+    imageUrl: string;
+  }
+
+  const getData = () => {
+    const originalData = [
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=1',
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=2',
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=3',
+        widthRatio: 1,
+        heightRatio: 2,
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=4',
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=5',
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=6',
+
+        widthRatio: 1,
+        heightRatio: 2,
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=7',
+
+        widthRatio: 2,
+        heightRatio: 2,
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=8',
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=9',
+      },
+      {
+        imageUrl: 'https://picsum.photos/200/300?random=10',
+      },
+    ];
+
+    let clonedData: DataProp[] = [];
+
+    for (let i = 0; i < 5; i++) {
+      const newData = originalData.map((item) => ({
+        ...item,
+        id: ++idCounter.current,
+      }));
+      clonedData = [...clonedData, ...newData];
+    }
+
+    return clonedData;
+  };
+
+//   const renderItem = ({ item }: { item: DataProp }) => {
+//     return (
+//       <View style={styles.boxContainer}>
+//         <Image
+//           source={{ uri: item.imageUrl }}
+//           style={styles.box}
+//           resizeMode="cover"
+//         />
+        
+//       </View>
+//     );
+//   };
 
   return (
 
@@ -162,44 +241,68 @@ const onScrollFunc = (x, y) => {
     //       // contentContainerStyle={{ padding: 100
     //       // }}
         >
-       
-    </ScrollView>
-     <StaggeredList
-      data={props.photos.sort(sortPhotos)}
-      style={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
-      scrollEnabled={false}
-      numColumns={6}
-      renderItem={((photo, index) =>{
-        return (
-        <View 
+            <ResponsiveGrid
+        maxItemsPerColumn={6}
+        // data={getData()}
+        data={props.photos.sort(sortPhotos)}
+        renderItem={((photo, index) =>{
+            return (
+            <View 
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              margin: 5,
+              backgroundColor: 'transparent',
+            }}
+            
+            >
+         {/* <Text>{photo.index}</Text> */}
+                 <Image 
+                style={(photo.item.orientation) ? styles.landscape : styles.portrait}
+                orientation={photo.item.orientation}
+                photo={photo}
+                source={(!!photo.item.thumbnail_url)
+                  ? {uri: photo.item.thumbnail_url}
+                  : {uri: DEFAULT_IMAGE}} />   
+              </View>
+        )
+        })}
+        showScrollIndicator={false}
         style={{
-          justifyContent: 'center',
-          alignItems: 'center',
-          margin: 5,
-          backgroundColor: 'transparent',
+          padding: 5,
         }}
-        
-        >
-     {/* <Text>{photo.index}</Text> */}
-             <Image 
-            style={(photo.item.orientation) ? styles.landscape : styles.portrait}
-            orientation={photo.item.orientation}
-            photo={photo}
-            source={(!!photo.item.thumbnail_url)
-              ? {uri: photo.item.thumbnail_url}
-              : {uri: DEFAULT_IMAGE}} />   
-          </View>
-    )
-    })}
-    />
+        // keyExtractor={(item: DataProp) => item.id.toString()}
+      />
+    </ScrollView>
+    {/* <TestGridTwo photos={props.photos}/> */}
+     
     </ScrollView>
   </View>
 );
 }
 
 const styles = StyleSheet.create({
-  
+    boxContainer: {
+        flex: 1,
+        margin: 1,
+      },
+      image: {
+        width: 100,
+        height: 100,
+      },
+      box: {
+        width: '100%',
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'transparent',
+      },
+      text: {
+        color: 'white',
+        fontSize: 10,
+        position: 'absolute',
+        bottom: 10,
+      },
   grid: {
     alignItems: 'flex-start',
     flexDirection: 'row',
@@ -260,6 +363,38 @@ const styles = StyleSheet.create({
 });
 
 export default Grid;
+
+
+// <StaggeredList
+//       data={props.photos.sort(sortPhotos)}
+//       style={styles.contentContainer}
+//       showsVerticalScrollIndicator={false}
+//       scrollEnabled={false}
+//       numColumns={6}
+    //   renderItem={((photo, index) =>{
+    //     return (
+    //     <View 
+    //     style={{
+    //       justifyContent: 'center',
+    //       alignItems: 'center',
+    //       margin: 5,
+    //       backgroundColor: 'transparent',
+    //     }}
+        
+    //     >
+    //  {/* <Text>{photo.index}</Text> */}
+    //          <Image 
+    //         style={(photo.item.orientation) ? styles.landscape : styles.portrait}
+    //         orientation={photo.item.orientation}
+    //         photo={photo}
+    //         source={(!!photo.item.thumbnail_url)
+    //           ? {uri: photo.item.thumbnail_url}
+    //           : {uri: DEFAULT_IMAGE}} />   
+    //       </View>
+    // )
+    // })}
+    // />
+
 
 
 // <ScrollView 

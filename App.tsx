@@ -11,6 +11,7 @@ import {Dimensions, ScrollView, StatusBar, StyleSheet, Text, Image, useColorSche
 import Header from './src/Containers/Header'
 import Grid from './src/Containers/Grid'
 import TestGrid from './src/Containers/TestGrid'
+import TestGridTwo from './src/Containers/TestGridTwo'
 import { Colors, DebugInstructions, LearnMoreLinks, ReloadInstructions } from 'react-native/Libraries/NewAppScreen';
 
 import StaggeredList from '@mindinventory/react-native-stagger-view';
@@ -23,7 +24,9 @@ import {
   GestureDetector
 } from "react-native-gesture-handler";
 
-
+export interface IPhotos {
+  photos: [IPhoto]
+}
 
 interface ICollaborator {
   uuid: string;
@@ -69,9 +72,11 @@ interface ILink {
   id: number;
   index: number;
 }
-
+// import { Dimensions } from 'react-native';
 
 function App(): React.JSX.Element {
+  const { height: screenHeight, width: screenWidth } = Dimensions.get('screen');
+  
   const isDarkMode = useColorScheme() === 'dark';
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -110,12 +115,12 @@ const [details, setDetails] = useState<any[] | [IDetails]>([])
 const gridRef = useRef()
 
 const setFolderPhotos = useCallback((folder, type) => {
-  console.log('callback details', folder, type)
+  // console.log('callback details', folder, type)
   setFolderArray(folder, type);
 }, [folders, collabs, favorites]);
 
 const setFolderArray = (object, type) => {
-    console.log('setFolder details', object, type)
+    // console.log('setFolder details', object, type)
     let index = object.index
     // console.log('details', object, index, type, details, root)
     const setFunc = type?.charAt(0)?.toUpperCase() + type.slice(1, -1)
@@ -123,7 +128,7 @@ const setFolderArray = (object, type) => {
     // // eval(`set${setFunc}Shown(${index})`)
     // // setShown(index)
     
-    console.log("setFolder", folder, folder.creative, type, object)
+    // console.log("setFolder", folder, folder.creative, type, object)
 
     if(type !== 'favorites'){
       // SHOWN, TYPE, PRIVACY, COLLABORATORS
@@ -144,7 +149,7 @@ const setFolderArray = (object, type) => {
 const mapDetails = (groups) => {
   if (!!groups){
     const detailArr = []
-    console.log("details", detailArr)
+    // console.log("details", detailArr)
   
     for (const i of Object.keys(groups)) {
       const key = Object.keys(groups[i]);
@@ -194,9 +199,10 @@ const mapDetails = (groups) => {
       .then((res) => res.json())
       .then((user) => {
         const groups = user?.user?.all_groups
-        console.log("user", user, groups, user.user.about)
+        // console.log("user", user, groups, user.user.about)
         // console.log("folder photos", groups[0]?.folders[0].photos)
-        setPhotos(groups[0]?.folders[0].photos)
+        setPhotos(removeUnders(groups[0]?.folders[0].photos))
+        // setPhotos(groups[0]?.folders[0].photos)
         setAbout(user.user.about)
         setUserId(user.user.id)
         setSiteHeader(user.user.name);
@@ -212,12 +218,12 @@ const mapDetails = (groups) => {
           const key = Object.keys(groups[i])[0];
           const value = Object.values(groups[i])[0]
           // const value = JSON.stringify(eval(`groups[i].${key}`))
-          console.log(i, groups, key, value)
+          // console.log(i, groups, key, value)
           
           
           const string = JSON.stringify(key).replace(/^"(.+)"$/,'$1')
           const setFunc = string.charAt(0).toUpperCase() + string.slice(1)
-          console.log(`set${setFunc}(${value})`)
+          // console.log(`set${setFunc}(${value})`)
           eval(`set${setFunc}(${value})`)
           
         }
@@ -232,7 +238,19 @@ useEffect(() => {
   landingFetch()
 }, [])
 
+const removeUnders = (photos) => {
+  const newArray = [...photos.sort(sortPhotos)]
+  // find all portrait photos in array
+  let portraitPhotos = [...newArray.filter((photo) => photo.orientation !== true)]
+  // find the photo under each portrait photo. this is due to how the dnd grid is ordered on desktop
+  let photosUnder = [...portraitPhotos.map((photo) => { 
+  let photoUnder = newArray[photo.index + 6]
+  return photoUnder
+})]
+photosUnder?.forEach(x => photos?.splice(photos?.findIndex(n => n?.id === x?.id), 1));
 
+return photos
+}
 useEffect(() => {
   // console.log("photos", photos)
 }, [photos])
@@ -244,7 +262,7 @@ const [posXy, setPosXy] = useState([0,50])
 const [xY, setXY] = useState([0,0])
 
 useEffect(() => {
-  console.log("startXy", startXy)
+  // console.log("startXy", startXy)
 }, [startXy])
 
 const onScrollFunc = (x, y) => {
@@ -268,7 +286,13 @@ const onScrollFunc = (x, y) => {
       
 const scrollRef = createRef();
 // const { width } = Dimensions.get('window')
+// SCROLL PHOTO TO CENTER CALLS FUNCTION
+// SENDS INDEX AS ARGUMENT AS WELL AS TOP/LEFT VALUE OR ROW/COLUMN VALUE
+// FUNCTION ENLARGES PHOTO FROM RIGHT/TOP POSITION FOR PHOTOS ON THE LEFT SIDE 
+// AND LEFT/TOP POSITION FOR PHOTOS ON THE RIGHT SIDE
+// FUNCTION THEN SHIFTS NEIGHBORING CELLS
 
+const { height, width } = Dimensions.get('window');
   return (
 
         <View
@@ -281,12 +305,12 @@ const scrollRef = createRef();
 
           >
           <Header 
-          style={{position: 'relative', zIndex: 1}} siteHeader={siteHeader} />
+          style={{position: 'aboslute', zIndex: 2}} siteHeader={siteHeader} />
           
-          {/* <TestGrid style={{width: '100%', height: '100%'}}/> */}
+          {/* <TestGrid photos={photos} style={{width: '100%', height: '100%'}}/> */}
 
-          <Grid 
-          style={{position: 'relative', zIndex: -1}}
+          {/* <Grid 
+          style={{position: 'relative', zIndex: -6}}
           collabs={folderDetails?.collaborators?.filter((collaber) => collaber.name !== userName)}
           // hightlighted={hightlighted}
           // colorArr={colorArr}
@@ -296,8 +320,10 @@ const scrollRef = createRef();
               currentUserId={currentUserId}
           //     // updateFavorites={updateFavorites}
               dbVersion={dbVersion}
-              />
+              /> */}
+              <TestGridTwo style={{position: 'aboslute', zIndex: 2, top: 0, overflow: 'visible'}} photos={photos}
               
+              />
     
         </View>
   );
@@ -412,8 +438,8 @@ export default App;
 //       zIndex: -1,
 //       padding: 100,
 //       // backgroundColor: 'gainsboro',
-//       // top: posXy[1],
-//       // left: posXy[0],
+      // top: posXy[1],
+      // left: posXy[0],
 //     }}
 //     >
 //     <ScrollView
